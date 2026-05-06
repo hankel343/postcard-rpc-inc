@@ -1,0 +1,3 @@
+[workspace]
+members = ["icd", "client", "server"]
+resolver = "2"

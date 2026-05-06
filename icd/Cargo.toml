@@ -1,0 +1,9 @@
+[package]
+name = "icd"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+postcard-rpc = "0.12.1"
+postcard-schema = "0.2.5"
+serde = "1.0.228"

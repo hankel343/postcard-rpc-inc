@@ -1,0 +1,11 @@
+[package]
+name = "client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+icd = { path = "../icd" }
+postcard-rpc = "0.12.1"
+postcard = "1.1.3"
+tokio = "1.52.2"
+serde = "1.0.228"
