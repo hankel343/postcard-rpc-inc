@@ -1,5 +1,5 @@
-use postcard_rpc::postcard_schema::Schema;
 use postcard_rpc::TopicDirection::{ToClient, ToServer};
+use postcard_rpc::postcard_schema::Schema;
 use postcard_rpc::{endpoints, topics};
 use serde::{Deserialize, Serialize};
 
