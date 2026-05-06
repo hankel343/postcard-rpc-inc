@@ -1,7 +1,7 @@
 use icd::{IncrementRequest, IncrementResponse, IncrementValue};
 use postcard_rpc::{
     define_dispatch,
-    header::VarHeader,
+    header::{VarHeader, VarSeqKind},
     server::{
         Dispatch,
         impls::test_channels::{
@@ -67,5 +67,20 @@ async fn main() {
         },
     );
 
-    server.run().await;
+    tokio::task::spawn(async move {
+        server.run().await;
+    });
+
+    let cli = postcard_rpc::host_client::test_channels::new_from_channels(
+        client_tx,
+        client_rx,
+        VarSeqKind::Seq1,
+    );
+
+    let resp = cli
+        .send_resp::<IncrementValue>(&IncrementRequest { value: 41 })
+        .await
+        .unwrap();
+
+    println!("Response: {}", resp.value);
 }
