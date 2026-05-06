@@ -1,9 +1,11 @@
+mod tcp_wire;
+
 use icd::{IncrementRequest, IncrementResponse, IncrementValue};
 use postcard_rpc::{
     define_dispatch,
     header::VarHeader,
     server::{
-        Dispatch,
+        Dispatch, Server,
         impls::test_channels::{
             ChannelWireRx, ChannelWireSpawn, ChannelWireTx,
             dispatch_impl::{Settings, new_server},
@@ -11,7 +13,8 @@ use postcard_rpc::{
     },
 };
 
-mod tcp_wire;
+use tcp_wire::{TcpWireRx, TcpWireTx, TcpWireSpawn};
+use tokio::net::TcpListener;
 
 pub struct ServerContext;
 
@@ -29,8 +32,8 @@ async fn increment_handler(
 define_dispatch! {
   app: IncrementDispatch;
   spawn_fn: spawn_fn;
-  tx_impl: ChannelWireTx;
-  spawn_impl: ChannelWireSpawn;
+  tx_impl: TcpWireTx;
+  spawn_impl: TcpWireSpawn;
   context: ServerContext;
 
   endpoints: {
@@ -53,20 +56,22 @@ define_dispatch! {
 
 #[tokio::main]
 async fn main() {
-    let (client_tx, server_rx) = tokio::sync::mpsc::channel(16);
-    let (server_tx, client_rx) = tokio::sync::mpsc::channel(16);
+    let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
+    println!("Server listening on 127.0.0.1:8080");
 
-    let app = IncrementDispatch::new(ServerContext, ChannelWireSpawn {});
+    let (stream, addr) = listener.accept().await.unwrap();
+    println!("Client connected {addr}");
+    let (rx_half, tx_half) = stream.into_split();
+    
+    let app = IncrementDispatch::new(ServerContext, TcpWireSpawn);
     let kkind = app.min_key_len();
 
-    let mut server = new_server(
+    let mut server = Server::new(
+        TcpWireTx::new(tx_half),
+        TcpWireRx::new(rx_half),
+        vec![0u8; 1027].into_boxed_slice(),
         app,
-        Settings {
-            tx: ChannelWireTx::new(server_tx),
-            rx: ChannelWireRx::new(server_rx),
-            buf: 1024,
-            kkind,
-        },
+        kkind,
     );
 
     server.run().await;
