@@ -11,6 +11,8 @@ use postcard_rpc::{
     },
 };
 
+mod tcp_wire;
+
 pub struct ServerContext;
 
 async fn increment_handler(

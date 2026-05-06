@@ -522,6 +522,7 @@ dependencies = [
  "postcard-rpc",
  "postcard-schema",
  "serde",
+ "thiserror",
  "tokio",
 ]
 
